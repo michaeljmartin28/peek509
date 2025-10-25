@@ -1,6 +1,6 @@
-# peekx509 README
+# peek509 README
 
-This is the README for your extension "peekx509". After writing up a brief description, we recommend including the following sections.
+Peek509 is a lightweight VS Code extension that lets developers instantly decode and inspect X.509 certificates from PEM files or selected text.
 
 ## Features
 
