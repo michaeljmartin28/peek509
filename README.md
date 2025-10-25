@@ -1,71 +1,51 @@
-# peek509 README
+# Peek509
 
-Peek509 is a lightweight VS Code extension that lets developers instantly decode and inspect X.509 certificates from PEM files or selected text.
-
-## Features
-
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
-
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
-
-## Requirements
-
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
-
-## Extension Settings
-
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
+**Peek509** is a lightweight VS Code extension that lets you decode and inspect X.509 certificates directly from `.pem` or `.crt` files. Right-click a certificate file and instantly view its contents in a clean, human-readable format — no terminal commands required.
 
 ---
 
-## Following extension guidelines
+## Features
 
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
+- Right-click to decode `.pem` and `.crt` files
+- Human-readable certificate viewer:
+  - Subject and Issuer details
+  - Validity period
+  - Serial number
+  - Signature algorithm
+  - Public key details (RSA/ECDSA)
+  - SHA-256 fingerprint
+  - Raw signature preview
+- Opens decoded output in a new tab
 
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
+---
 
-## Working with Markdown
+## Usage
 
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
+1. Open your project in VS Code.
+2. Right-click any `.pem` or `.crt` file in the Explorer.
+3. Select **"Peek509: Decode x509 Certificate"**.
+4. A new tab will open with the decoded certificate.
 
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
+---
 
-## For more information
+## Installation
 
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+Search for **Peek509** in the [Visual Studio Marketplace](https://marketplace.visualstudio.com/) or install via the Extensions panel in VS Code.
 
-**Enjoy!**
+---
+
+## Roadmap
+
+Planned for future versions:
+
+- Extension decoding (subjectAltName, keyUsage, etc.)
+- Webview UI with copy/export buttons
+- Multi-cert file support
+- CSR and CRL decoding
+- Decode PEM strings directly from highlighted text
+
+---
+
+## License
+
+MIT License — see [LICENSE](./LICENSE) for details.

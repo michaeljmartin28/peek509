@@ -1,15 +1,18 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
+import { decodeCertificate, formatCertificate } from './decoder';
 
 export function activate(context: vscode.ExtensionContext) {
-  console.log('Congratulations, your extension "peek509" is now active!');
-
   const disposable = vscode.commands.registerCommand('peek509.decodeCert', async (uri: vscode.Uri) => {
     try {
       const content = fs.readFileSync(uri.fsPath, 'utf8');
-
-      // TODO: decode the x509 cert later
-      const decoded = 'Decoded content:\n\n' + content;
+      const decodedCert = decodeCertificate(content);
+      if (!decodedCert) {
+        vscode.window.showErrorMessage('Failed to decode the certificate.');
+        return;
+      }
+      const formatted = formatCertificate(decodedCert);
+      const decoded = 'Decoded content:\n\n' + formatted;
 
       const doc = await vscode.workspace.openTextDocument({
         content: decoded,
@@ -21,11 +24,9 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.window.showErrorMessage(`Failed to read file: ${err}`);
       return;
     }
-    //vscode.window.showInformationMessage('Hello World from peek509!');
   });
 
   context.subscriptions.push(disposable);
 }
 
-// This method is called when your extension is deactivated
 export function deactivate() {}

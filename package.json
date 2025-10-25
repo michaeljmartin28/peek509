@@ -2,7 +2,7 @@
   "name": "peek509",
   "displayName": "peek509",
   "description": "Peek509 is a lightweight VS Code extension that lets developers instantly decode and inspect X.509 certificates from PEM files or selected text.",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "engines": {
     "vscode": "^1.105.0"
   },
@@ -42,6 +42,7 @@
   "devDependencies": {
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
+    "@types/node-forge": "^1.3.14",
     "@types/vscode": "^1.105.0",
     "@typescript-eslint/eslint-plugin": "^8.45.0",
     "@typescript-eslint/parser": "^8.45.0",
