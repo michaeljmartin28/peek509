@@ -16,7 +16,7 @@
   ],
   "icon": "./src/assets/icons/peek509_icon.png",
   "pricing": "Free",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "engines": {
     "vscode": "^1.105.0"
   },

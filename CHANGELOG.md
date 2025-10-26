@@ -20,3 +20,15 @@ All notable changes to this project will be documented here.
   - SHA-256 fingerprint
   - Signature preview
 - Error handling for invalid or unreadable certs
+
+## [1.1.0] - 2025-10-25
+
+### Added
+
+- Support for running "Decode x509 Certificate" from the Command Palette
+- File picker fallback for decoding certs outside the workspace
+- Improved formatting with aligned and indented output
+
+### Changed
+
+- Changes output to use a virtual document provider to prevent users being prompted to save decoded output.
