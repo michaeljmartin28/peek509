@@ -1,7 +1,21 @@
 {
   "name": "peek509",
-  "displayName": "peek509",
+  "displayName": "Peek509: X.509 Certificate Viewer",
   "description": "Peek509 is a lightweight VS Code extension that lets developers instantly decode and inspect X.509 certificates from PEM files or selected text.",
+  "keywords": [
+    "x509",
+    "certificate",
+    "pem",
+    "crt",
+    "tls",
+    "viewer",
+    "decoder",
+    "openssl",
+    "parser",
+    "crypto"
+  ],
+  "icon": "./src/assets/icons/peek509_icon.png",
+  "pricing": "Free",
   "version": "1.0.0",
   "engines": {
     "vscode": "^1.105.0"

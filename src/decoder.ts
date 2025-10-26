@@ -1,6 +1,5 @@
 import * as forge from 'node-forge';
 import { DecodedCert } from './types';
-import { decode } from 'punycode';
 
 /**
  * Decodes a PEM-encoded X.509 certificate using node-forge.
@@ -38,10 +37,49 @@ export function decodeCertificate(pem: string): DecodedCert | null {
   }
 }
 
+function pad(label: string, width = 32): string {
+  return label.padEnd(width, ' ');
+}
+
 function getSignatureHex(cert: forge.pki.Certificate): string {
   const signatureBytes = cert.signature;
   const hex = forge.util.bytesToHex(signatureBytes);
   return hex.match(/.{2}/g)?.join(':') ?? hex;
+}
+
+function formatSubjectOrIssuer(attrs: { name: string; value: string }[]): string {
+  let output = '';
+
+  for (const attr of attrs) {
+    switch (attr.name) {
+      case 'commonName':
+        output += `${pad('    Common Name (CN):')}${attr.value}\n`;
+        break;
+      case 'organizationName':
+        output += `${pad('    Organization (O):')}${attr.value}\n`;
+        break;
+      case 'organizationalUnitName':
+        output += `${pad('    Organizational Unit (OU):')}${attr.value}\n`;
+        break;
+      case 'countryName':
+        output += `${pad('    Country (C):')}${attr.value}\n`;
+        break;
+      case 'localityName':
+        output += `${pad('    Locality (L):')}${attr.value}\n`;
+        break;
+      case 'stateOrProvinceName':
+        output += `${pad('    State (S):')}${attr.value}\n`;
+        break;
+      case 'emailAddress':
+        output += `${pad('    Email:')}${attr.value}\n`;
+        break;
+      default:
+        output += `${pad('    ' + attr.name)}: ${attr.value}\n`;
+        break;
+    }
+  }
+  output = output.replace(/, $/, '');
+  return output;
 }
 
 function getSha256Fingerprint(cert: forge.pki.Certificate): string {
@@ -49,7 +87,7 @@ function getSha256Fingerprint(cert: forge.pki.Certificate): string {
   const md = forge.md.sha256.create();
   md.update(derBytes);
   const digest = md.digest().toHex();
-  return digest.match(/.{2}/g)?.join('') ?? digest; // Format as colon-separated hex
+  return digest.match(/.{2}/g)?.join('') ?? digest;
 }
 
 export function formatCertificate(decoded: DecodedCert): string {
@@ -74,20 +112,16 @@ export function formatCertificate(decoded: DecodedCert): string {
 
   let output = '';
   output += 'Subject:\n';
-  decoded.subject.forEach(attr => {
-    output += `  ${attr.name}: ${attr.value}\n`;
-  });
+  output += formatSubjectOrIssuer(decoded.subject) + '\n';
   output += 'Issuer:\n';
-  decoded.issuer.forEach(attr => {
-    output += `  ${attr.name}: ${attr.value}\n`;
-  });
+  output += formatSubjectOrIssuer(decoded.issuer) + '\n';
   output += `Serial Number: ${decoded.serialNumber}\n`;
-  output += `Validity:\n  Not Before: ${decoded.notBefore}\n  Not After: ${decoded.notAfter}\n`;
+  output += `Validity:\n\tNot Before: ${decoded.notBefore}\n\tNot After: ${decoded.notAfter}\n`;
   output += `Fingerprint (SHA-256): ${decoded.fingerprint}\n`;
   output += `Signature: ${decoded.signature.slice(0, 11)} ... ${decoded.signature.slice(-11)}\n`;
   output += `Public Key:\n`;
   for (const [key, value] of Object.entries(pubFormatted)) {
-    output += `  ${key}: ${value}\n`;
+    output += `\t${key}: ${value}\n`;
   }
   if (decoded.extensions) {
     output += 'Extensions:\n Coming soon...\n';

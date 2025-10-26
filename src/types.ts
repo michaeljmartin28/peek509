@@ -7,7 +7,11 @@ export interface DecodedCert {
   notBefore: Date;
   notAfter: Date;
   signature: string;
-  publicKey: forge.pki.PublicKey;
+  publicKey: forge.pki.PublicKey & {
+    n?: forge.jsbn.BigInteger;
+    e?: forge.jsbn.BigInteger;
+    curve?: { name: string };
+  };
   fingerprint: string;
   extensions?: {
     name: string;

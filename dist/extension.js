@@ -38,14 +38,29 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.activate = activate;
 exports.deactivate = deactivate;
 const vscode = __importStar(__webpack_require__(1));
 const fs = __importStar(__webpack_require__(2));
 const decoder_1 = __webpack_require__(3);
+const path_1 = __importDefault(__webpack_require__(47));
 function activate(context) {
     const disposable = vscode.commands.registerCommand('peek509.decodeCert', async (uri) => {
+        if (!uri) {
+            const fileUri = await vscode.window.showOpenDialog({
+                canSelectMany: false,
+                filters: { 'Certificate Files': ['pem', 'crt'] },
+            });
+            if (!fileUri || fileUri.length === 0) {
+                vscode.window.showInformationMessage('Peek509: To decode a certificate in your workspace, right-click a .pem or .crt file.');
+                return;
+            }
+            uri = fileUri[0];
+        }
         try {
             const content = fs.readFileSync(uri.fsPath, 'utf8');
             const decodedCert = (0, decoder_1.decodeCertificate)(content);
@@ -54,12 +69,16 @@ function activate(context) {
                 return;
             }
             const formatted = (0, decoder_1.formatCertificate)(decodedCert);
-            const decoded = 'Decoded content:\n\n' + formatted;
-            const doc = await vscode.workspace.openTextDocument({
-                content: decoded,
-                language: 'plaintext',
+            const decoded = `Decoded content for: ${path_1.default.basename(uri.fsPath)}\n\n` + formatted;
+            vscode.workspace.registerTextDocumentContentProvider('peek509', {
+                provideTextDocumentContent(uri) {
+                    return decoded;
+                },
             });
-            await vscode.window.showTextDocument(doc, { preview: false });
+            const vuri = vscode.Uri.parse('peek509:' + path_1.default.basename(uri.fsPath) + '.decoded.txt');
+            vscode.workspace.openTextDocument(vuri).then(doc => {
+                vscode.window.showTextDocument(doc, { preview: true });
+            });
         }
         catch (err) {
             vscode.window.showErrorMessage(`Failed to read file: ${err}`);
@@ -164,17 +183,53 @@ function decodeCertificate(pem) {
         return null;
     }
 }
+function pad(label, width = 32) {
+    return label.padEnd(width, ' ');
+}
 function getSignatureHex(cert) {
     const signatureBytes = cert.signature;
     const hex = forge.util.bytesToHex(signatureBytes);
     return hex.match(/.{2}/g)?.join(':') ?? hex;
+}
+function formatSubjectOrIssuer(attrs) {
+    let output = '';
+    for (const attr of attrs) {
+        switch (attr.name) {
+            case 'commonName':
+                output += `${pad('    Common Name (CN):')}${attr.value}\n`;
+                break;
+            case 'organizationName':
+                output += `${pad('    Organization (O):')}${attr.value}\n`;
+                break;
+            case 'organizationalUnitName':
+                output += `${pad('    Organizational Unit (OU):')}${attr.value}\n`;
+                break;
+            case 'countryName':
+                output += `${pad('    Country (C):')}${attr.value}\n`;
+                break;
+            case 'localityName':
+                output += `${pad('    Locality (L):')}${attr.value}\n`;
+                break;
+            case 'stateOrProvinceName':
+                output += `${pad('    State (S):')}${attr.value}\n`;
+                break;
+            case 'emailAddress':
+                output += `${pad('    Email:')}${attr.value}\n`;
+                break;
+            default:
+                output += `${pad('    ' + attr.name)}: ${attr.value}\n`;
+                break;
+        }
+    }
+    output = output.replace(/, $/, '');
+    return output;
 }
 function getSha256Fingerprint(cert) {
     const derBytes = forge.asn1.toDer(forge.pki.certificateToAsn1(cert)).getBytes();
     const md = forge.md.sha256.create();
     md.update(derBytes);
     const digest = md.digest().toHex();
-    return digest.match(/.{2}/g)?.join('') ?? digest; // Format as colon-separated hex
+    return digest.match(/.{2}/g)?.join('') ?? digest;
 }
 function formatCertificate(decoded) {
     let pubFormatted = {};
@@ -198,20 +253,16 @@ function formatCertificate(decoded) {
     }
     let output = '';
     output += 'Subject:\n';
-    decoded.subject.forEach(attr => {
-        output += `  ${attr.name}: ${attr.value}\n`;
-    });
+    output += formatSubjectOrIssuer(decoded.subject) + '\n';
     output += 'Issuer:\n';
-    decoded.issuer.forEach(attr => {
-        output += `  ${attr.name}: ${attr.value}\n`;
-    });
+    output += formatSubjectOrIssuer(decoded.issuer) + '\n';
     output += `Serial Number: ${decoded.serialNumber}\n`;
-    output += `Validity:\n  Not Before: ${decoded.notBefore}\n  Not After: ${decoded.notAfter}\n`;
+    output += `Validity:\n\tNot Before: ${decoded.notBefore}\n\tNot After: ${decoded.notAfter}\n`;
     output += `Fingerprint (SHA-256): ${decoded.fingerprint}\n`;
     output += `Signature: ${decoded.signature.slice(0, 11)} ... ${decoded.signature.slice(-11)}\n`;
     output += `Public Key:\n`;
     for (const [key, value] of Object.entries(pubFormatted)) {
-        output += `  ${key}: ${value}\n`;
+        output += `\t${key}: ${value}\n`;
     }
     if (decoded.extensions) {
         output += 'Extensions:\n Coming soon...\n';
@@ -28582,6 +28633,13 @@ function _sha1() {
   return sha.digest();
 }
 
+
+/***/ }),
+/* 47 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("path");
 
 /***/ })
 /******/ 	]);
