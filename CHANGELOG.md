@@ -32,3 +32,9 @@ All notable changes to this project will be documented here.
 ### Changed
 
 - Changes output to use a virtual document provider to prevent users being prompted to save decoded output.
+
+## [1.1.1] - 2025-10-27
+
+### Changed
+
+- Changes the minimum VSCode version requirement to 1.101.0
