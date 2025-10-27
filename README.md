@@ -49,7 +49,9 @@ Search for **Peek509** in the [Visual Studio Marketplace](https://marketplace.vi
 
 Planned for future versions:
 
-- Extension decoding (e.g., subjectAltName, keyUsage)
+- Extension decoding (e.g., subjectAltName, keyUsage, basicConstraints)
+- Syntax highlighting for text-based view
+- DER format decoding (Include PEM version in viewer for quick conversions)
 - Webview UI with copy/export buttons and collapsible sections
 - Multi-cert file support
 - CSR and CRL decoding

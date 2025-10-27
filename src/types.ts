@@ -1,5 +1,9 @@
 import * as forge from 'node-forge';
 
+/**
+ * A DecodedCert represents an X.509 certificate the sections of an x509 certificate
+ * that this extension supports viewing.
+ */
 export interface DecodedCert {
   subject: { name: string; value: string }[];
   issuer: { name: string; value: string }[];
@@ -18,4 +22,5 @@ export interface DecodedCert {
     value: string;
     critical?: boolean;
   }[];
+  decodedPem?: string;
 }

@@ -4,8 +4,14 @@ import { decodeCertificate, formatCertificate } from './decoder';
 import path from 'path';
 
 export function activate(context: vscode.ExtensionContext) {
+  /**
+   * Register the decodeCert command.
+   * If this command is run via right-click on a file in the file explorer, the file Uri will be passed in.
+   * If Uri does not exist, the command was run from the command palette.
+   */
   const disposable = vscode.commands.registerCommand('peek509.decodeCert', async (uri: vscode.Uri) => {
     if (!uri) {
+      // Command palette - open a file dialog to let the user select a file to decode.
       const fileUri = await vscode.window.showOpenDialog({
         canSelectMany: false,
         filters: { 'Certificate Files': ['pem', 'crt'] },
@@ -20,6 +26,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     try {
+      // Attempt to read the file then decode and format the output.  Expects PEM format.
       const content = fs.readFileSync(uri.fsPath, 'utf8');
       const decodedCert = decodeCertificate(content);
       if (!decodedCert) {
@@ -29,14 +36,16 @@ export function activate(context: vscode.ExtensionContext) {
       const formatted = formatCertificate(decodedCert);
       const decoded = `Decoded content for: ${path.basename(uri.fsPath)}\n\n` + formatted;
 
+      // Create a Virtual Document Provider to display the results.
       vscode.workspace.registerTextDocumentContentProvider('peek509', {
         provideTextDocumentContent(uri: vscode.Uri): string {
           return decoded;
         },
       });
 
-      const vuri = vscode.Uri.parse('peek509:' + path.basename(uri.fsPath) + '.decoded.txt');
-      vscode.workspace.openTextDocument(vuri).then(doc => {
+      // Display the results in a virtual document.
+      const vUri = vscode.Uri.parse('peek509:' + path.basename(uri.fsPath) + '.decoded.txt');
+      vscode.workspace.openTextDocument(vUri).then(doc => {
         vscode.window.showTextDocument(doc, { preview: true });
       });
     } catch (err) {
