@@ -27,7 +27,7 @@ export function parseBasicConstraints(ext: { name: string; binaryValue: string; 
       return result;
     }
 
-    const values = asn1.valueBlock.value;
+    const values = (asn1.valueBlock as any).value;
 
     if (values.length > 0 && values[0] instanceof ASN1Boolean) {
       result.parsed!.isCA = values[0].getValue();

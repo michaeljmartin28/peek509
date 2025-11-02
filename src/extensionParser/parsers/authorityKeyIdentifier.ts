@@ -35,7 +35,7 @@ export function parseAuthorityKeyIdentifier(ext: {
       return result;
     }
 
-    const seq = asn1.valueBlock.value;
+    const seq = (asn1.valueBlock as any).value;
 
     for (const item of seq) {
       const tag = item.idBlock.tagNumber;

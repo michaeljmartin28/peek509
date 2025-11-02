@@ -73,7 +73,7 @@ export async function decodeCertificate(pem: string): Promise<DecodedCert> {
 
   // SHA-256 fingerprint
   const digest = await createHash('sha256').update(Buffer.from(der)).digest();
-  const fingerprint = bufferToHexCodes(digest);
+  const fingerprint = bufferToHexCodes(digest.buffer);
 
   const extensions = cert.extensions?.map(ext => {
     const binaryValue = String.fromCharCode(...new Uint8Array(ext.extnValue.valueBlock.valueHex));

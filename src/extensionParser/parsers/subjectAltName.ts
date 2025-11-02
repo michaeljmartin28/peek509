@@ -38,7 +38,7 @@ export function parseSubjectAltName(ext: { name: string; binaryValue: string; cr
       return result;
     }
 
-    const names = asn1.valueBlock.value;
+    const names = (asn1.valueBlock as any).value;
     const parsedNames: Record<string, string[]> = {};
 
     for (const name of names) {

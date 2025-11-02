@@ -39,7 +39,7 @@ export function parseExtendedKeyUsage(ext: { name: string; binaryValue: string; 
       return result;
     }
 
-    const oids = asn1.valueBlock.value;
+    const oids = (asn1.valueBlock as any).value;
     for (const oidNode of oids) {
       if (oidNode instanceof ObjectIdentifier) {
         const oid = oidNode.valueBlock.toString();

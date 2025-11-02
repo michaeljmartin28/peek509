@@ -31,7 +31,7 @@ export function parseSubjectKeyIdentifier(ext: {
       return result;
     }
 
-    const keyIdHex = bufferToHexCodes(asn1.valueBlock.valueHex);
+    const keyIdHex = bufferToHexCodes((asn1.valueBlock as any).valueHex);
     result.parsed!.identifier = keyIdHex;
   } catch (err) {
     result.warnings = ['Exception during Subject Key Identifier decoding'];

@@ -48,7 +48,7 @@ export function parseKeyUsage(ext: { name: string; binaryValue: string; critical
       return result;
     }
 
-    const bits = asn1.valueBlock.valueHex;
+    const bits = (asn1.valueBlock as any).valueHex;
     const bitArray = new Uint8Array(bits);
 
     // Flatten bits into a single array of booleans
