@@ -1,9 +1,10 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
-import { decodeCertificate, formatCertificate } from './decoder';
 import path from 'path';
 
-export function activate(context: vscode.ExtensionContext) {
+import { decodeCertificate, formatCertificate } from './decoder';
+
+export async function activate(context: vscode.ExtensionContext) {
   /**
    * Register the decodeCert command.
    * If this command is run via right-click on a file in the file explorer, the file Uri will be passed in.
@@ -28,7 +29,9 @@ export function activate(context: vscode.ExtensionContext) {
     try {
       // Attempt to read the file then decode and format the output.  Expects PEM format.
       const content = fs.readFileSync(uri.fsPath, 'utf8');
-      const decodedCert = decodeCertificate(content);
+      // const decodedCert = decodeCertificate(content);
+      const decodedCert = await decodeCertificate(content);
+
       if (!decodedCert) {
         vscode.window.showErrorMessage('Failed to decode the certificate.');
         return;

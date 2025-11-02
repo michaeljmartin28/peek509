@@ -1,41 +1,103 @@
-import * as forge from 'node-forge';
-import { DecodedCert } from './types';
+import { DecodedCert, ParsedExtension, oidMap, extensionOidMap } from './types';
+import { parseBasicConstraints } from './extensionParser/parsers/basicConstraints';
+import { parseKeyUsage } from './extensionParser/parsers/keyUsage';
+import { parseSubjectAltName } from './extensionParser/parsers/subjectAltName';
+import { createHash } from 'crypto';
+import { fromBER } from 'asn1js';
+import { Certificate } from 'pkijs';
+import { bufferToHexCodes } from 'pvutils';
+import { parseExtendedKeyUsage } from './extensionParser/parsers/extendedKeyUsage';
+import { parseSubjectKeyIdentifier } from './extensionParser/parsers/subjectKeyIdentifier';
+import { parseAuthorityKeyIdentifier } from './extensionParser/parsers/authorityKeyIdentifier';
 
 /**
- * Decodes a PEM-encoded X.509 certificate using node-forge.
+ * Decodes a PEM-encoded X.509 certificate.
  * @param pem
  * @returns
  */
-export function decodeCertificate(pem: string): DecodedCert | null {
-  try {
-    const cert = forge.pki.certificateFromPem(pem);
-    const decoded: DecodedCert = {
-      subject: cert.subject.attributes.map(attr => ({
-        name: attr.name || attr.type || attr.shortName || 'unknown',
-        value: String(attr.value),
-      })),
-      issuer: cert.issuer.attributes.map(attr => ({
-        name: attr.name || attr.type || attr.shortName || 'unknown',
-        value: String(attr.value),
-      })),
-      serialNumber: cert.serialNumber,
-      notBefore: cert.validity.notBefore,
-      notAfter: cert.validity.notAfter,
-      signature: getSignatureHex(cert),
-      publicKey: cert.publicKey,
-      fingerprint: getSha256Fingerprint(cert),
-      extensions: cert.extensions?.map(ext => ({
-        name: ext.name,
-        value: ext.value,
-        critical: ext.critical,
-      })),
-      decodedPem: pem,
+export async function decodeCertificate(pem: string): Promise<DecodedCert> {
+  const b64 = pem
+    .replace(/-----BEGIN CERTIFICATE-----/, '')
+    .replace(/-----END CERTIFICATE-----/, '')
+    .replace(/\s+/g, '');
+  const der = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+  const asn1 = fromBER(der.buffer);
+  if (asn1.offset === -1) throw new Error('Failed to decode ASN.1');
+
+  const cert = new Certificate({ schema: asn1.result });
+
+  const subject = cert.subject.typesAndValues.map(tv => ({
+    name: tv.type,
+    value: tv.value.valueBlock.value,
+  }));
+
+  const issuer = cert.issuer.typesAndValues.map(tv => ({
+    name: tv.type,
+    value: tv.value.valueBlock.value,
+  }));
+
+  const serialNumber = cert.serialNumber.valueBlock.toString();
+  const notBefore = cert.notBefore.value;
+  const notAfter = cert.notAfter.value;
+  const signature = cert.signatureAlgorithm.algorithmId;
+
+  const algorithmOID = cert.subjectPublicKeyInfo.algorithm.algorithmId;
+  const publicKey: DecodedCert['publicKey'] = {
+    type: 'Unknown',
+    algorithmOID,
+  };
+
+  const spki = cert.subjectPublicKeyInfo.subjectPublicKey.valueBlock.valueHex;
+
+  if (algorithmOID === '1.2.840.113549.1.1.1') {
+    // RSA
+    const rsaAsn1 = fromBER(spki);
+    const rsaSeq = (rsaAsn1.result.valueBlock as any).value;
+
+    const modulus = bufferToHexCodes(rsaSeq[0].valueBlock.valueHex);
+    const exponent = parseInt(rsaSeq[1].valueBlock.valueDec.toString(), 10);
+
+    publicKey.type = 'RSA';
+    publicKey.rsa = { modulus, exponent };
+  } else if (algorithmOID === '1.2.840.10045.2.1') {
+    // ECDSA
+    const curveOID = cert.subjectPublicKeyInfo.algorithm.algorithmParams.valueBlock.toString();
+    const publicKeyHex = bufferToHexCodes(spki);
+
+    publicKey.type = 'ECDSA';
+    publicKey.ecdsa = {
+      curveOID,
+      publicKeyHex,
     };
-    return decoded;
-  } catch (error) {
-    console.error('Failed to decode certificate:', error);
-    return null;
   }
+
+  // SHA-256 fingerprint
+  const digest = await createHash('sha256').update(Buffer.from(der)).digest();
+  const fingerprint = bufferToHexCodes(digest);
+
+  const extensions = cert.extensions?.map(ext => {
+    const binaryValue = String.fromCharCode(...new Uint8Array(ext.extnValue.valueBlock.valueHex));
+    const name = extensionOidMap[ext.extnID] ?? ext.extnID;
+
+    return {
+      name,
+      binaryValue,
+      critical: ext.critical,
+    };
+  });
+
+  return {
+    subject,
+    issuer,
+    serialNumber,
+    notBefore,
+    notAfter,
+    signature,
+    publicKey,
+    fingerprint,
+    extensions,
+    decodedPem: pem,
+  };
 }
 
 /**
@@ -49,17 +111,6 @@ function pad(label: string, width = 32): string {
 }
 
 /**
- * Converts the certificate signature into a hex string
- * @param cert The Node-Forge PKI certificate.
- * @returns The signature as a hex string.
- */
-function getSignatureHex(cert: forge.pki.Certificate): string {
-  const signatureBytes = cert.signature;
-  const hex = forge.util.bytesToHex(signatureBytes);
-  return hex.match(/.{2}/g)?.join(':') ?? hex;
-}
-
-/**
  * Formats a string to view the subject or issuer section of an x509 certificate.
  * @param attrs The attributes (name, value) of a certificates subject or issuer section.
  * @returns A formatted string that prints attributes.
@@ -68,48 +119,11 @@ function formatSubjectOrIssuer(attrs: { name: string; value: string }[]): string
   let output = '';
 
   for (const attr of attrs) {
-    switch (attr.name) {
-      case 'commonName':
-        output += `${pad('    Common Name (CN):')}${attr.value}\n`;
-        break;
-      case 'organizationName':
-        output += `${pad('    Organization (O):')}${attr.value}\n`;
-        break;
-      case 'organizationalUnitName':
-        output += `${pad('    Organizational Unit (OU):')}${attr.value}\n`;
-        break;
-      case 'countryName':
-        output += `${pad('    Country (C):')}${attr.value}\n`;
-        break;
-      case 'localityName':
-        output += `${pad('    Locality (L):')}${attr.value}\n`;
-        break;
-      case 'stateOrProvinceName':
-        output += `${pad('    State (S):')}${attr.value}\n`;
-        break;
-      case 'emailAddress':
-        output += `${pad('    Email:')}${attr.value}\n`;
-        break;
-      default:
-        output += `${pad('    ' + attr.name)}: ${attr.value}\n`;
-        break;
-    }
+    const label = oidMap[attr.name] ?? `OID ${attr.name}`;
+    output += `${pad(`    ${label}:`)}${attr.value}\n`;
   }
-  output = output.replace(/, $/, '');
-  return output;
-}
 
-/**
- * Computes the SHA256 fingerprint of an x509 certificate.
- * @param cert the Node-Forge PKI certificate to hash.
- * @returns The hex-string hash of the certificate.
- */
-function getSha256Fingerprint(cert: forge.pki.Certificate): string {
-  const derBytes = forge.asn1.toDer(forge.pki.certificateToAsn1(cert)).getBytes();
-  const md = forge.md.sha256.create();
-  md.update(derBytes);
-  const digest = md.digest().toHex();
-  return digest.match(/.{2}/g)?.join('') ?? digest;
+  return output.replace(/, $/, '');
 }
 
 /**
@@ -119,25 +133,6 @@ function getSha256Fingerprint(cert: forge.pki.Certificate): string {
  */
 export function formatCertificate(decoded: DecodedCert): string {
   let pubFormatted = {};
-
-  if (decoded.publicKey.n && decoded.publicKey.e) {
-    // RSA Key
-    pubFormatted = {
-      Algorithm: 'RSA',
-      KeySize: decoded.publicKey.n.bitLength(),
-      Exponent: decoded.publicKey.e.toString(),
-    };
-  } else if (decoded.publicKey.curve) {
-    // ECDSA Key
-    pubFormatted = {
-      Algorithm: 'ECDSA',
-      Curve: decoded.publicKey.curve.name,
-    };
-  } else {
-    pubFormatted = {
-      Algorithm: 'Unknown',
-    };
-  }
 
   let output = '';
   output += 'Subject:\n';
@@ -149,16 +144,20 @@ export function formatCertificate(decoded: DecodedCert): string {
   output += `Fingerprint (SHA-256): ${decoded.fingerprint}\n`;
   output += `Signature: ${decoded.signature.slice(0, 11)} ... ${decoded.signature.slice(-11)}\n`;
   output += `Public Key:\n`;
-  for (const [key, value] of Object.entries(pubFormatted)) {
-    output += `\t${key}: ${value}\n`;
+  if (decoded.publicKey.type === 'RSA' && decoded.publicKey.rsa) {
+    output += `\tType: RSA\n`;
+    output += `\tModulus (n): ${decoded.publicKey.rsa.modulus}\n`;
+    output += `\tExponent (e): ${decoded.publicKey.rsa.exponent}\n`;
+  } else if (decoded.publicKey.type === 'ECDSA' && decoded.publicKey.ecdsa) {
+    output += `\tType: ECDSA\n`;
+    output += `\tCurve OID: ${decoded.publicKey.ecdsa.curveOID}\n`;
+    output += `\tPublic Key: ${decoded.publicKey.ecdsa.publicKeyHex}\n`;
   }
   if (decoded.extensions) {
     output += 'Extensions:\n';
     for (const ext of decoded.extensions) {
-      const parsedExt = parseExtension(ext);
-      console.log(parsedExt);
-      output += `\t${parsedExt.name} (Critical: ${parsedExt.critical})\n`;
-      output += `\t\tValue: ${parsedExt.value}\n`;
+      const parsedExtText = prettyPrintExtension(ext);
+      output += `\t${parsedExtText}\n\n`;
     }
   }
   output += '\n\n' + '~'.repeat(50) + '\n';
@@ -167,53 +166,92 @@ export function formatCertificate(decoded: DecodedCert): string {
   return output;
 }
 
+function formatExtensionText(ext: ParsedExtension, tabSize = 2): string {
+  const lines: string[] = [];
+
+  lines.push(`${ext.name} ${ext.critical ? '(critical)' : ''}`.trim());
+
+  if (ext.parsed) {
+    for (const [key, val] of Object.entries(ext.parsed)) {
+      const label = key.replace(/([A-Z])/g, '$1').replace(/^./, s => s.toUpperCase());
+      const value = typeof val === 'boolean' ? (val ? 'Yes' : 'No') : val;
+      lines.push(`\t`.repeat(tabSize) + `- ${label}: ${value}`);
+    }
+  } else if (ext.raw) {
+    lines.push(`- Raw Value: ${btoa(ext.raw)}`);
+  }
+
+  if (ext.warnings?.length) {
+    for (const warning of ext.warnings) {
+      lines.push(`- Warning: ${warning}`);
+    }
+  }
+
+  return lines.join('\n');
+}
+
 /**
  * Parses an extexsion and, if supported, decodes its ASN.1 value into readable text.
  * @param ext The extension (name, value, critical?)
  * @returns
  */
-function parseExtension(ext: { name: string; value: string; critical?: boolean }): any {
+function prettyPrintExtension(ext: { name: string; binaryValue: string; critical?: boolean }): any {
+  let parsed = null;
   switch (ext.name) {
-    case 'basicConstraints':
-      const rawValue = ext.value;
-
-      const asn1Object = forge.asn1.fromDer(rawValue);
-      console.log('Decoded ASN.1 structure:', JSON.stringify(asn1Object, null, 2));
-
-      return {
-        name: 'Basic Constraints',
-        critical: ext.critical || false,
-        value: 'Unknown - Full extension parsing coming in a future update.',
-      };
-    case 'keyUsage':
-      return {
-        name: 'Key Usage',
-        critical: ext.critical || false,
-        value: 'Unknown - Full extension parsing coming in a future update.',
-      };
-    case 'subjectKeyIdentifier':
-      return {
-        name: 'Subject Key Identifier',
-        critical: ext.critical || false,
-        value: 'Unknown - Full extension parsing coming in a future update.',
-      };
-    case 'authorityKeyIdentifier':
-      return {
-        name: 'Authority Key Identifier',
-        critical: ext.critical || false,
-        value: 'Unknown - Full extension parsing coming in a future update.',
-      };
-    case 'subjectAltName':
-      return {
-        name: 'Subject Alternative Name',
-        critical: ext.critical || false,
-        value: 'Unknown - Full extension parsing coming in a future update.',
-      };
-    default:
-      return {
+    case 'basicConstraints': {
+      parsed = parseBasicConstraints({
         name: ext.name,
-        critical: ext.critical || false,
-        value: ext.value || ext.toString(),
-      };
+        binaryValue: ext.binaryValue,
+        critical: ext.critical,
+      });
+      break;
+    }
+    case 'keyUsage': {
+      parsed = parseKeyUsage({
+        name: ext.name,
+        binaryValue: ext.binaryValue,
+        critical: ext.critical,
+      });
+      break;
+    }
+    case 'subjectAltName': {
+      parsed = parseSubjectAltName({
+        name: ext.name,
+        binaryValue: ext.binaryValue,
+        critical: ext.critical,
+      });
+      break;
+    }
+    case 'extendedKeyUsage': {
+      parsed = parseExtendedKeyUsage({
+        name: ext.name,
+        binaryValue: ext.binaryValue,
+        critical: ext.critical,
+      });
+      break;
+    }
+    case 'subjectKeyIdentifier': {
+      parsed = parseSubjectKeyIdentifier({
+        name: ext.name,
+        binaryValue: ext.binaryValue,
+        critical: ext.critical,
+      });
+      break;
+    }
+    case 'authorityKeyIdentifier': {
+      parsed = parseAuthorityKeyIdentifier({
+        name: ext.name,
+        binaryValue: ext.binaryValue,
+        critical: ext.critical,
+      });
+      break;
+    }
+    default: {
+      const base64 = btoa(ext.binaryValue);
+      return `${ext.name} ${ext.critical ? '(critical)' : ''}
+        - Parsing not yet supported — coming soon!
+        - Raw (base64): ${base64}`;
+    }
   }
+  return formatExtensionText(parsed);
 }
