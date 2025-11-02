@@ -10,12 +10,21 @@
   - Right-click in Explorer
   - Command Palette (with file picker fallback)
 - Human-readable certificate viewer:
+
   - Subject and Issuer details
   - Validity period
   - Serial number
   - SHA-256 fingerprint
   - Signature preview
   - Public key details (RSA/ECDSA)
+  - Parsed extensions:
+    - `keyUsage`
+    - `extendedKeyUsage`
+    - `subjectKeyIdentifier`
+    - `authorityKeyIdentifier`
+    - `basicConstraints`
+    - `subjectAltName`
+
 - Opens decoded output in a virtual tab (no save prompt)
 - Clean indentation and aligned formatting for readability
 
@@ -49,10 +58,8 @@ Search for **Peek509** in the [Visual Studio Marketplace](https://marketplace.vi
 
 Planned for future versions:
 
-- Extension decoding (e.g., subjectAltName, keyUsage, basicConstraints)
-- Syntax highlighting for text-based view
-- DER format decoding (Include PEM version in viewer for quick conversions)
 - Webview UI with copy/export buttons and collapsible sections
+- Syntax highlighting for text-based view
 - Multi-cert file support
 - CSR and CRL decoding
 - Decode PEM strings directly from highlighted text

@@ -4,6 +4,12 @@ All notable changes to this project will be documented here.
 
 ---
 
+## [1.2.1] - 2025-11-02
+
+### Changed
+
+- Updated README to reflect new extension support and public key parsing
+
 ## [1.2.0] - 2025-11-02
 
 ### Added
