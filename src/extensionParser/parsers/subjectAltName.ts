@@ -31,6 +31,8 @@ export function parseSubjectAltName(ext: { name: string; binaryValue: string; cr
   };
 
   try {
+    result.raw = ext.binaryValue;
+
     const { asn1, buffer, error } = decodeExtensionAsn1(ext.binaryValue);
     if (error || !asn1) {
       result.warnings = [error ?? 'Unknown decoding error'];

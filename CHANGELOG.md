@@ -4,6 +4,31 @@ All notable changes to this project will be documented here.
 
 ---
 
+## [1.3.0] - 2026-01-09
+
+### Added
+
+- New Webview-based certificate viewer with Tailwind styling for a richer, more readable UI
+- `peek509.renderMode` configuration option to choose between Webview and text output
+- Light/Dark theme support for the Webview (`peek509.webviewTheme`)
+- HTML formatters for supported X.509 extensions, improving readability and structure
+- Collapsible sections in the Webview for cleaner navigation
+- Copy-to-clipboard buttons for long fields such as:
+  - SHA-256 fingerprint
+  - RSA modulus
+  - EC public key
+- - Raw extension data is now displayed in the Webview for all X.509 extensions, including those not yet fully parsed
+
+### Changed
+
+- Integrated ASN.1 parsing pipeline into the Webview renderer
+- Improved internal architecture to support future UI enhancements
+- README updates for clarity
+
+### Fixed
+
+- Resolved an issue where reopening a modified PEM/CRT file would display stale cached data
+
 ## [1.2.1] - 2025-11-02
 
 ### Changed

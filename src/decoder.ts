@@ -173,7 +173,7 @@ function formatExtensionText(ext: ParsedExtension, tabSize = 2): string {
 
   if (ext.parsed) {
     for (const [key, val] of Object.entries(ext.parsed)) {
-      const label = key.replace(/([A-Z])/g, '$1').replace(/^./, s => s.toUpperCase());
+      const label = key;
       const value = typeof val === 'boolean' ? (val ? 'Yes' : 'No') : val;
       lines.push(`\t`.repeat(tabSize) + `- ${label}: ${value}`);
     }
@@ -190,12 +190,45 @@ function formatExtensionText(ext: ParsedExtension, tabSize = 2): string {
   return lines.join('\n');
 }
 
+function formatExtensionHtml(ext: ParsedExtension, theme: 'light' | 'dark'): string {
+  const lines: string[] = [];
+
+  if (ext.parsed) {
+    for (const [key, val] of Object.entries(ext.parsed)) {
+      const label = key;
+      const value = typeof val === 'boolean' ? (val ? 'Yes' : 'No') : val;
+      lines.push(`<p class="mb-2"><strong>${label}:</strong> ${value}</p>`);
+    }
+  }
+  if (ext.raw) {
+    lines.push('<hr class="my-4"/>');
+    lines.push(
+      `<p id=raw_${ext.name} class="mb-2"><strong>Raw Value (base64):</strong> <code class="${
+        theme === 'dark' ? '-gray-600' : '-gray-200'
+      } px-2 py-1 rounded text-xs">${btoa(ext.raw)}</code></p>`
+    );
+  }
+
+  if (ext.warnings?.length) {
+    for (const warning of ext.warnings) {
+      lines.push(`<p class="text-yellow-600 mb-2"><strong>⚠️ Warning:</strong> ${warning}</p>`);
+    }
+  }
+
+  return lines.join('');
+}
+
 /**
- * Parses an extexsion and, if supported, decodes its ASN.1 value into readable text.
+ * Parses an extension and, if supported, decodes its ASN.1 value into readable text or HTML.
  * @param ext The extension (name, value, critical?)
+ * @param format 'text' for plain text, 'html' for webview
  * @returns
  */
-function prettyPrintExtension(ext: { name: string; binaryValue: string; critical?: boolean }): any {
+export function prettyPrintExtension(
+  ext: { name: string; binaryValue: string; critical?: boolean },
+  format: 'text' | 'html' = 'text',
+  theme: 'light' | 'dark' = 'light'
+): string {
   let parsed = null;
   switch (ext.name) {
     case 'basicConstraints': {
@@ -248,10 +281,16 @@ function prettyPrintExtension(ext: { name: string; binaryValue: string; critical
     }
     default: {
       const base64 = btoa(ext.binaryValue);
+      if (format === 'html') {
+        return `<p class="text-gray-600 mb-2">Parsing not yet supported — coming soon!</p>
+                <p class="mb-2"><strong>Raw (base64):</strong></p>
+                <code class="block bg-gray-200 p-2 rounded text-xs break-words">${base64}</code>`;
+      }
       return `${ext.name} ${ext.critical ? '(critical)' : ''}
         - Parsing not yet supported — coming soon!
         - Raw (base64): ${base64}`;
     }
   }
-  return formatExtensionText(parsed);
+
+  return format === 'html' ? formatExtensionHtml(parsed, theme) : formatExtensionText(parsed);
 }
