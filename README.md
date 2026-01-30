@@ -6,29 +6,58 @@
 
 ## Features
 
+### Certificate Decoding
+
 - Decode `.pem` and `.crt` files via:
   - Right-click in Explorer
   - Command Palette (with file picker fallback)
-- Human-readable certificate viewer:
 
-  - Subject and Issuer details
-  - Validity period
-  - Serial number
-  - SHA-256 fingerprint
-  - Signature preview
-  - Public key details (RSA/ECDSA)
-  - Parsed extensions:
-    - `keyUsage`
-    - `extendedKeyUsage`
-    - `subjectKeyIdentifier`
-    - `authorityKeyIdentifier`
-    - `basicConstraints`
-    - `subjectAltName`
+- Supports manual ASN.1 parsing using `asn1js` and `pkijs`
+- Handles RSA and ECDSA public keys, with future extensibility for EdDSA
 
-- Opens decoded output in a virtual tab (no save prompt)
-- Clean indentation and aligned formatting for readability
+## Demo
 
----
+A quick look at Peek509 in action:
+
+<video width="800" autoplay loop muted playsinline>
+  <source src="media/Peek509Demo.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+### Webview Certificate Viewer (New in 1.3.0)
+
+- Rich HTML UI powered by TailwindCSS
+- Light/Dark theme support
+- Collapsible sections for clean navigation
+- Copy‑to‑clipboard buttons for long fields:
+- SHA‑256 fingerprint
+- RSA modulus
+- EC public key
+- SKI / AKI
+- Other long extension values
+- HTML formatters for supported X.509 extensions
+
+### Text Based Viewer
+
+- Optional plain‑text rendering mode (`peek509.renderMode`)
+- Clean indentation and aligned formatting
+- No save prompt — output opens in a virtual document
+
+### Parsed Certificate Fields
+
+- Subject and Issuer details (with OID mapping)
+- Validity period
+- Serial number
+- SHA‑256 fingerprint
+- Public key details (RSA/ECDSA)
+- Parsed extensions:
+  - `keyUsage`
+  - `extendedKeyUsage`
+  - `subjectKeyIdentifier`
+  - `authorityKeyIdentifier`
+  - `basicConstraints`
+  - `subjectAltName`
+  - Additional extensions where supported
 
 ## Usage
 
@@ -37,16 +66,21 @@
 - Open your project in VS Code.
 - Right-click any `.pem` or `.crt` file in the Explorer.
 - Select "**Peek509: Decode x509 Certificate**".
-- A new tab will open with the decoded certificate.
+- View the decoded certificate in the Webview or text viewer (based on settings)
 
 ### Option 2: Command Palette
 
 - Open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`).
 - Run "**Peek509: Decode x509 Certificate**".
 - Select a certificate file from anywhere on your system.
-- View the decoded output in a virtual tab.
+- The decoded output will be displayed immediately
 
----
+## Configuration
+
+| Setting              | Description                                             |
+| -------------------- | ------------------------------------------------------- |
+| peek509.renderMode   | Choose between `webview` (recommended) or `text` output |
+| peek509.webviewTheme | Select "light" or "dark" theme for the Webview          |
 
 ## Installation
 
@@ -56,15 +90,16 @@ Search for **Peek509** in the [Visual Studio Marketplace](https://marketplace.vi
 
 ## Roadmap
 
-Planned for future versions:
+Planned enhancements for future versions:
 
-- Webview UI with copy/export buttons and collapsible sections
-- Syntax highlighting for text-based view
-- Multi-cert file support
+- Multi‑certificate file support
 - CSR and CRL decoding
 - Decode PEM strings directly from highlighted text
 - Certificate/key generation (RSA/ECDSA)
-- Signature verification check
+- Signature verification and trust chain visualization
+- Export decoded certificate as JSON or PEM
+- Dark‑mode auto‑detection
+- Inline ASN.1 tree view for raw DER
 
 ---
 
