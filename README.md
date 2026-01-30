@@ -15,14 +15,9 @@
 - Supports manual ASN.1 parsing using `asn1js` and `pkijs`
 - Handles RSA and ECDSA public keys, with future extensibility for EdDSA
 
-## Demo
+## Example Usage
 
-A quick look at Peek509 in action:
-
-<video control>
-  <source src="media/Peek509Demo.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+https://github.com/user-attachments/assets/cabf98fd-65e1-4f96-a3dc-df3977565727
 
 ### Webview Certificate Viewer (New in 1.3.0)
 
