@@ -6,6 +6,8 @@
 
 ## Features
 
+![Peek509](https://github.com/michaeljmartin28/peek509/blob/fix/readme-video/media/example.gif)
+
 ### Certificate Decoding
 
 - Decode `.pem` and `.crt` files via:
@@ -14,10 +16,6 @@
 
 - Supports manual ASN.1 parsing using `asn1js` and `pkijs`
 - Handles RSA and ECDSA public keys, with future extensibility for EdDSA
-
-## Example Usage
-
-![Peek509](https://github.com/michaeljmartin28/peek509/blob/fix/readme-video/media/example.gif)
 
 ### Webview Certificate Viewer (New in 1.3.0)
 
