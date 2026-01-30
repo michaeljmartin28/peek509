@@ -17,16 +17,7 @@
 
 ## Example Usage
 
-<p align="center">
-  <img src="media/example.png" alt="Peek509 Demo" />
-</p>
-
-<!-- Marketplace video (GitHub may hide this, Marketplace will show it) -->
-
-<video width="800" align="center" autoplay loop muted playsinline>
-
-  <source src="media/example.mp4" type="video/mp4">
-</video>
+![Peek509](https://github.com/michaeljmartin28/peek509/blob/fix/readme-video/media/example.gif)
 
 ### Webview Certificate Viewer (New in 1.3.0)
 
