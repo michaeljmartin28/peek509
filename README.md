@@ -20,7 +20,7 @@
 A quick look at Peek509 in action:
 
 <video width="800" autoplay loop muted playsinline>
-  <source src="media/Peek509Demo.mp4" type="video/mp4">
+  <source src="/media/Peek509Demo.mp4" type="video/mp4">
   Your browser does not support the video tag.
 </video>
 
