@@ -6,7 +6,7 @@
 
 ## Features
 
-![Peek509](https://github.com/michaeljmartin28/peek509/blob/fix/readme-video/media/example.gif)
+![Peek509](media/example.gif)
 
 ### Certificate Decoding
 
