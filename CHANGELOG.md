@@ -8,6 +8,12 @@ All notable changes to this project will be documented here.
 
 ### Added
 
+- Adds an MP4 Demo clip to the README and VS Code Marketplace.
+
+## [1.3.0] - 2026-01-09
+
+### Added
+
 - New Webview-based certificate viewer with Tailwind styling for a richer, more readable UI
 - `peek509.renderMode` configuration option to choose between Webview and text output
 - Light/Dark theme support for the Webview (`peek509.webviewTheme`)
