@@ -17,7 +17,16 @@
 
 ## Example Usage
 
-https://github.com/user-attachments/assets/cabf98fd-65e1-4f96-a3dc-df3977565727
+<p align="center">
+  <img src="media/example.png" alt="Peek509 Demo" />
+</p>
+
+<!-- Marketplace video (GitHub may hide this, Marketplace will show it) -->
+
+<video width="800" align="center" autoplay loop muted playsinline>
+
+  <source src="media/example.mp4" type="video/mp4">
+</video>
 
 ### Webview Certificate Viewer (New in 1.3.0)
 
