@@ -6,6 +6,8 @@
 
 ## Features
 
+![Peek509](https://github.com/michaeljmartin28/peek509/blob/fix/readme-video/media/example.gif)
+
 ### Certificate Decoding
 
 - Decode `.pem` and `.crt` files via:
@@ -15,14 +17,6 @@
 - Supports manual ASN.1 parsing using `asn1js` and `pkijs`
 - Handles RSA and ECDSA public keys, with future extensibility for EdDSA
 
-## Demo
-
-A quick look at Peek509 in action:
-
-<video width="800" autoplay loop muted playsinline>
-  <source src="/media/Peek509Demo.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
 
 ### Webview Certificate Viewer (New in 1.3.0)
 
