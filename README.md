@@ -6,7 +6,7 @@
 
 ## Features
 
-![Peek509](https://github.com/michaeljmartin28/peek509/blob/fix/readme-video/media/example.gif)
+![Peek509](media/example.gif)
 
 ### Certificate Decoding
 
@@ -16,7 +16,6 @@
 
 - Supports manual ASN.1 parsing using `asn1js` and `pkijs`
 - Handles RSA and ECDSA public keys, with future extensibility for EdDSA
-
 
 ### Webview Certificate Viewer (New in 1.3.0)
 
