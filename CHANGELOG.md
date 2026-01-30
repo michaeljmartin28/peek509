@@ -4,7 +4,13 @@ All notable changes to this project will be documented here.
 
 ---
 
-## [1.3.0] - 2026-01-09
+## [1.3.2] - 2026-01-30
+
+### Fixes
+
+- The path to the GIF so it works on both GitHub and the VS Code Marketplace.
+
+## [1.3.1] - 2026-01-30
 
 ### Added
 
